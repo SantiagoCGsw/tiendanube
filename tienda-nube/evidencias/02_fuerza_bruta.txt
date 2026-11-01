@@ -1,0 +1,11 @@
+PRUEBA DE LÍMITE DE INTENTOS DE INICIO DE SESIÓN (rate limiting · 10/min, ráfaga 5)
+  intento 1: HTTP 401  Credenciales inválidas
+  intento 2: HTTP 401  Credenciales inválidas
+  intento 3: HTTP 401  Credenciales inválidas
+  intento 4: HTTP 401  Credenciales inválidas
+  intento 5: HTTP 401  Credenciales inválidas
+  intento 6: HTTP 401  Credenciales inválidas
+  intento 7: HTTP 429  bloqueado por el API Gateway
+  intento 8: HTTP 429  bloqueado por el API Gateway
+  intento 9: HTTP 429  bloqueado por el API Gateway
+  intento 10: HTTP 429  bloqueado por el API Gateway

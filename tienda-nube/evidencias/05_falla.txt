@@ -1,0 +1,11 @@
+[t= 4.0s] Se simula la caída del proceso en la réplica tienda-nube-products-2
+[t= 5.2s] Estado de tienda-nube-products-2: running reinicios=1 salud=starting
+[t= 8.4s] Estado de tienda-nube-products-2: running reinicios=1 salud=starting
+[t=11.5s] Estado de tienda-nube-products-2: running reinicios=1 salud=starting
+[t=14.6s] Estado de tienda-nube-products-2: running reinicios=1 salud=starting
+[t=17.8s] Estado de tienda-nube-products-2: running reinicios=1 salud=healthy
+[t=20.9s] Estado de tienda-nube-products-2: running reinicios=1 salud=healthy
+[t=20.9s] Estado de tienda-nube-products-2: running reinicios=1 salud=healthy
+
+Solicitudes atendidas durante la prueba: 2225
+Códigos HTTP: {200: 2225}  ·  disponibilidad observada: 100.00 %

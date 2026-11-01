@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<style>
+  body { margin:0; background:#fff; font-family:"Segoe UI","DejaVu Sans",sans-serif; color:#1d2433; }
+  #c { position:relative; width:1800px; height:1130px; }
+  .grp { position:absolute; border-radius:10px; }
+  .grp > .t { position:absolute; top:6px; left:12px; font-size:13px; font-weight:700; letter-spacing:.02em; }
+  .b { position:absolute; background:#fff; border:1.5px solid #98a2b3; border-radius:8px; padding:7px 9px; font-size:12.5px; line-height:1.3; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; }
+  .b b { font-size:13.5px; }
+  .b .s { color:#475467; font-size:11.5px; }
+  .n { display:inline-block; background:#1d2433; color:#fff; border-radius:50%; width:18px; height:18px; font-size:11px; text-align:center; line-height:18px; margin-right:5px; font-weight:700; }
+  .sec { border-color:#c4320a; } .mon { border-color:#6941c6; } .data { border-color:#1570ef; } .app { border-color:#067647; } .edge { border-color:#b54708; }
+  svg { position:absolute; left:0; top:0; overflow:visible; }
+  .lbl { font-size:11px; fill:#344054; paint-order:stroke; stroke:#fff; stroke-width:4px; }
+  h1 { position:absolute; left:20px; top:8px; margin:0; font-size:20px; }
+  .leg { position:absolute; font-size:11.5px; color:#344054; }
+</style></head><body>
+<div id="c">
+  <h1>Arquitectura propuesta · Plataforma de comercio electrónico en AWS</h1>
+
+  <!-- Región y VPC -->
+  <div class="grp" style="left:450px;top:50px;width:1330px;height:960px;border:2px solid #232f3e;background:#fafbfc"><div class="t">AWS · Región us-east-1 (N. Virginia)</div></div>
+  <div class="grp" style="left:470px;top:85px;width:900px;height:760px;border:2px dashed #7f56d9;background:#f9f5ff40"><div class="t" style="color:#6941c6">VPC 10.0.0.0/16 · 2 zonas de disponibilidad (A y B)</div></div>
+  <div class="grp" style="left:485px;top:120px;width:200px;height:710px;background:#ecfdf3;border:1px solid #abefc6"><div class="t" style="color:#067647">Subred pública</div></div>
+  <div class="grp" style="left:700px;top:120px;width:330px;height:710px;background:#eff8ff;border:1px solid #b2ddff"><div class="t" style="color:#175cd3">Subred privada · aplicación</div></div>
+  <div class="grp" style="left:1045px;top:120px;width:310px;height:710px;background:#f4f3ff;border:1px solid #d9d6fe"><div class="t" style="color:#5925dc">Subred privada · datos</div></div>
+  <div class="grp" style="left:715px;top:150px;width:300px;height:660px;border:1.5px solid #067647;background:#fff8"><div class="t" style="color:#067647;top:4px">Amazon ECS · AWS Fargate (contenedores)</div></div>
+
+  <!-- Usuarios y borde -->
+  <div class="b" id="users" style="left:20px;top:420px;width:150px;height:110px;align-items:center;text-align:center"><span class="n">1</span><b>Usuarios</b><span class="s">Celular (app/navegador) y computador</span></div>
+  <div class="b edge" id="dns" style="left:230px;top:150px;width:190px;height:62px"><b>Amazon Route 53</b><span class="s">DNS · tienda.co</span></div>
+  <div class="b edge" id="cdn" style="left:230px;top:420px;width:190px;height:80px"><b>Amazon CloudFront</b><span class="s">CDN · HTTPS/TLS 1.2+ · caché de contenido estático</span></div>
+  <div class="b sec" id="waf" style="left:230px;top:270px;width:190px;height:72px"><span><span class="n">6</span><b>AWS WAF + Shield</b></span><span class="s">Filtro OWASP, límite de solicitudes, anti-DDoS</span></div>
+  <div class="b edge" id="web" style="left:480px;top:880px;width:230px;height:72px"><span><span class="n">2</span><b>Interfaz web (SPA)</b></span><span class="s">Amazon S3 (sitio estático) servido por CloudFront</span></div>
+  <div class="b" id="pay" style="left:20px;top:880px;width:190px;height:80px;border-style:dashed"><b>Pasarela de pagos (SaaS)</b><span class="s">Wompi / PayU · PCI DSS · webhooks HTTPS</span></div>
+
+  <!-- Subred pública -->
+  <div class="b edge" id="alb" style="left:498px;top:400px;width:175px;height:110px"><span><span class="n">3</span><b>Application Load Balancer</b></span><span class="s">Punto de entrada /api · TLS (ACM) · health checks · 2 AZ</span></div>
+  <div class="b" id="nat" style="left:498px;top:690px;width:175px;height:62px"><b>NAT Gateway</b><span class="s">Salida controlada a Internet</span></div>
+
+  <!-- Microservicios -->
+  <div class="b app" id="s_users" style="left:735px;top:185px;width:260px;height:92px"><span><span class="n">4</span><b>Servicio de usuarios</b></span><span class="s">Registro, perfiles, roles · valida JWT de Cognito</span><span class="s">Auto Scaling 2–6 tareas</span></div>
+  <div class="b app" id="s_prod" style="left:735px;top:300px;width:260px;height:92px"><span><span class="n">4</span><b>Servicio de productos</b></span><span class="s">Catálogo, precios, imágenes</span><span class="s">Auto Scaling 2–8 tareas</span></div>
+  <div class="b app" id="s_ord" style="left:735px;top:415px;width:260px;height:92px"><span><span class="n">4</span><b>Servicio de pedidos</b></span><span class="s">Carrito, pedidos, estado · publica eventos</span><span class="s">Auto Scaling 2–8 tareas</span></div>
+  <div class="b app" id="s_inv" style="left:735px;top:530px;width:260px;height:92px"><span><span class="n">4</span><b>Servicio de inventario</b></span><span class="s">Existencias y reservas atómicas</span><span class="s">Auto Scaling 2–6 tareas</span></div>
+  <div class="b app" id="s_pay" style="left:735px;top:645px;width:260px;height:92px"><span><span class="n">4</span><b>Servicio de pagos</b></span><span class="s">Integra la pasarela; no almacena datos de tarjeta</span><span class="s">Auto Scaling 2–4 tareas</span></div>
+
+  <!-- Datos -->
+  <div class="b data" id="rds" style="left:1065px;top:185px;width:270px;height:130px"><span><span class="n">5</span><b>Amazon RDS for PostgreSQL</b></span><span class="s">Multi-AZ: primaria (AZ A) + réplica en espera (AZ B) con conmutación automática</span><span class="s">Esquema por servicio · cifrado KMS</span></div>
+  <div class="b data" id="sqs" style="left:1065px;top:440px;width:270px;height:80px"><b>Amazon SQS</b><span class="s">Cola de eventos de pedidos (desacopla pedidos, inventario y pagos)</span></div>
+  <div class="b data" id="redis" style="left:1065px;top:335px;width:270px;height:70px"><b>Amazon ElastiCache (Valkey)</b><span class="s">Caché de catálogo y sesiones de carrito</span></div>
+
+  <!-- Servicios regionales -->
+  <div class="grp" style="left:1390px;top:85px;width:375px;height:330px;border:1.5px solid #c4320a;background:#fff6ed"><div class="t" style="color:#c4320a"><span class="n" style="background:#c4320a">6</span>Seguridad y control de acceso</div></div>
+  <div class="b sec" id="cognito" style="left:1405px;top:120px;width:345px;height:62px"><b>Amazon Cognito</b><span class="s">Autenticación, MFA, emisión de tokens JWT (OAuth 2.0)</span></div>
+  <div class="b sec" id="iam" style="left:1405px;top:192px;width:345px;height:58px"><b>AWS IAM</b><span class="s">Roles por servicio con mínimo privilegio · MFA a administradores</span></div>
+  <div class="b sec" id="secrets" style="left:1405px;top:260px;width:345px;height:58px"><b>AWS Secrets Manager + AWS KMS</b><span class="s">Credenciales rotadas · cifrado en reposo</span></div>
+  <div class="b sec" id="ecr" style="left:1405px;top:328px;width:345px;height:58px"><b>Amazon ECR + Security Groups</b><span class="s">Imágenes escaneadas · reglas de red entre capas</span></div>
+
+  <div class="grp" style="left:1390px;top:435px;width:375px;height:255px;border:1.5px solid #6941c6;background:#f9f5ff"><div class="t" style="color:#6941c6"><span class="n" style="background:#6941c6">7</span>Monitoreo y registros</div></div>
+  <div class="b mon" id="cw" style="left:1405px;top:470px;width:345px;height:62px"><b>Amazon CloudWatch</b><span class="s">Logs, métricas, alarmas, Container Insights, paneles</span></div>
+  <div class="b mon" id="trail" style="left:1405px;top:542px;width:345px;height:58px"><b>AWS CloudTrail + Amazon GuardDuty</b><span class="s">Auditoría de API y detección de amenazas</span></div>
+  <div class="b mon" id="sns" style="left:1405px;top:610px;width:345px;height:58px"><b>Amazon SNS</b><span class="s">Alertas por correo/SMS al equipo de guardia</span></div>
+
+  <div class="grp" style="left:1390px;top:710px;width:375px;height:285px;border:1.5px solid #1570ef;background:#eff8ff"><div class="t" style="color:#1570ef"><span class="n" style="background:#1570ef">5</span><span class="n" style="background:#6941c6">7</span>Almacenamiento y copias de seguridad</div></div>
+  <div class="b data" id="s3img" style="left:1405px;top:745px;width:345px;height:62px"><b>Amazon S3 · archivos</b><span class="s">Imágenes de productos y facturas · versionado · cifrado</span></div>
+  <div class="b data" id="backup" style="left:1405px;top:817px;width:345px;height:76px"><b>AWS Backup</b><span class="s">Snapshots diarios de RDS (35 días) + recuperación a un punto en el tiempo</span></div>
+  <div class="b data" id="dr" style="left:1405px;top:903px;width:345px;height:76px"><b>Copia en otra región (us-east-2)</b><span class="s">Replicación de snapshots y de S3 para recuperación ante desastres</span></div>
+
+  <div class="leg" style="left:20px;top:1030px;width:1750px">
+    <svg width="40" height="10" style="position:static;vertical-align:middle"><line x1="0" y1="5" x2="38" y2="5" stroke="#1d2433" stroke-width="2"/></svg> Flujo de solicitudes (HTTPS/TLS)
+    &nbsp;&nbsp; <svg width="40" height="10" style="position:static;vertical-align:middle"><line x1="0" y1="5" x2="38" y2="5" stroke="#1570ef" stroke-width="2" stroke-dasharray="6 4"/></svg> Acceso a datos / eventos
+    &nbsp;&nbsp; <svg width="40" height="10" style="position:static;vertical-align:middle"><line x1="0" y1="5" x2="38" y2="5" stroke="#c4320a" stroke-width="1.6" stroke-dasharray="2 4"/></svg> Seguridad (identidad, secretos)
+    &nbsp;&nbsp; <svg width="40" height="10" style="position:static;vertical-align:middle"><line x1="0" y1="5" x2="38" y2="5" stroke="#6941c6" stroke-width="1.6" stroke-dasharray="2 4"/></svg> Logs, métricas y copias de seguridad
+    <br>Números = elementos mínimos de la Fase 3: 1 usuarios · 2 interfaz web · 3 punto de entrada · 4 servicios · 5 base de datos y archivos · 6 seguridad · 7 monitoreo, registros y respaldos.
+  </div>
+  <svg id="svg" width="1800" height="1130"></svg>
+</div>
+<script>
+const E = [
+  ["users","cdn","r","l","HTTPS","main",{mx:200,lx:178,ly:452}],
+  ["users","dns","r","l","DNS","main",{mx:200,lx:205,ly:200}],
+  ["users","cognito","t","t","inicio de sesión + MFA → token JWT (Amazon Cognito)","sec",{yy:44,lx:760,ly:40}],
+  ["waf","cdn","b","t","filtra el tráfico","sec",{lx:330,ly:395}],
+  ["cdn","web","b","l","contenido estático","main",{lx:330,ly:910}],
+  ["cdn","alb","r","l","/api/*","main",{mx:460,lx:428,ly:452}],
+  ["alb","s_users","r","l","","main",{mx:705}],["alb","s_prod","r","l","","main",{mx:705}],["alb","s_ord","r","l","","main",{mx:705}],
+  ["alb","s_inv","r","l","","main",{mx:705}],["alb","s_pay","r","l","","main",{mx:705}],
+  ["s_users","rds","r","l","SQL/TLS","data",{mx:1030,lx:1003,ly:222}],["s_prod","redis","r","l","","data",{mx:1030}],
+  ["s_ord","sqs","r","l","eventos","data",{mx:1030,lx:996,ly:470}],["s_inv","sqs","r","l","","data",{mx:1030}],
+  ["s_pay","nat","l","r","","main",{mx:690}],["nat","pay","b","t","HTTPS (cobro)","main",{lx:300,ly:811}],
+  ["rds","backup","r","l","snapshots","mon",{mx:1362,lx:1290,ly:850}],
+  ["sqs","cw","r","l","logs y métricas","mon",{mx:1372,lx:1280,ly:530}],
+  ["secrets","rds","l","r","credenciales","sec",{mx:1382,lx:1268,ly:300}],
+  ["s3img","dr","b","t","","mon",{}],
+];
+const g = id => { const r = document.getElementById(id).getBoundingClientRect(); return r; };
+const pt = (r, s) => s==="r"?[r.right, r.top+r.height/2]:s==="l"?[r.left, r.top+r.height/2]:s==="t"?[r.left+r.width/2, r.top]:[r.left+r.width/2, r.bottom];
+const STY = { main:["#1d2433","2",""], data:["#1570ef","2","6 4"], sec:["#c4320a","1.6","2 4"], mon:["#6941c6","1.6","2 4"] };
+const svg = document.getElementById("svg"); let defs = "<defs>";
+for (const [k,[c]] of Object.entries(STY)) defs += `<marker id="a_${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`;
+let out = defs + "</defs>";
+for (const [f,t,fs,ts,label,st,o] of E) {
+  const [x1,y1] = pt(g(f),fs), [x2,y2] = pt(g(t),ts); const [c,w,d] = STY[st];
+  let path;
+  if (fs==="t" && ts==="t") path = `M${x1},${y1} V${o.yy} H${x2} V${y2}`;
+  else if ((fs==="r"||fs==="l") && (ts==="l"||ts==="r")) { const mx = o.mx ?? (x1+x2)/2; path = `M${x1},${y1} H${mx} V${y2} H${x2}`; }
+  else if (fs==="b" && ts==="t") path = `M${x1},${y1} V${(y1+y2)/2} H${x2} V${y2}`;
+  else if (fs==="b" && ts==="l") path = `M${x1},${y1} V${y2} H${x2}`;
+  else path = `M${x1},${y1} L${x2},${y2}`;
+  out += `<path d="${path}" fill="none" stroke="${c}" stroke-width="${w}" stroke-dasharray="${d}" marker-end="url(#a_${st})"/>`;
+  if (label) out += `<text class="lbl" x="${o.lx}" y="${o.ly}">${label}</text>`;
+}
+svg.innerHTML = out;
+</script>
+</body></html>

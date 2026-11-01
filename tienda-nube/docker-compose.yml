@@ -1,0 +1,92 @@
+name: tienda-nube
+
+x-service: &service
+  build: .
+  image: tienda/servicio:1.0
+  restart: unless-stopped          # recuperación automática ante caídas del proceso
+  networks: [backend]
+  secrets: [jwt_secret, service_key]
+  read_only: true
+  tmpfs: [/tmp]
+  deploy:
+    resources:
+      limits: { cpus: "0.50", memory: 256M }   # equivalente a una tarea pequeña de Fargate
+
+services:
+  users:
+    <<: *service
+    environment: { SERVICE_NAME: users, DB_PATH: /data/db.sqlite3 }
+    secrets: [jwt_secret, service_key, admin_password]
+    volumes: [users-data:/data]
+
+  products:
+    <<: *service
+    environment: { SERVICE_NAME: products, DB_PATH: /data/db.sqlite3, SIMULATED_LATENCY_MS: "40" }
+    volumes: [products-data:/data]
+    deploy:
+      replicas: ${PRODUCTS_REPLICAS:-2}
+      resources:
+        limits: { cpus: "0.50", memory: 256M }
+
+  inventory:
+    <<: *service
+    environment: { SERVICE_NAME: inventory, DB_PATH: /data/db.sqlite3 }
+    volumes: [inventory-data:/data]
+
+  orders:
+    <<: *service
+    environment: { SERVICE_NAME: orders, DB_PATH: /data/db.sqlite3 }
+    volumes: [orders-data:/data]
+    deploy:
+      replicas: ${ORDERS_REPLICAS:-2}
+      resources:
+        limits: { cpus: "0.50", memory: 256M }
+
+  monitor:
+    <<: *service
+    environment: { SERVICE_NAME: monitor }
+    secrets: []
+    command: python3 -m gunicorn --workers 1 --bind 0.0.0.0:5000 monitor:app
+    healthcheck: { test: ["CMD", "true"] }
+
+  gateway:
+    build: ./gateway
+    image: tienda/gateway:1.0
+    restart: unless-stopped
+    ports: ["8080:80", "8443:443"]          # único componente expuesto
+    networks: [edge, backend]
+    volumes: ["./certs:/etc/nginx/certs:ro"]
+    depends_on:
+      users: { condition: service_healthy }
+      products: { condition: service_healthy }
+      inventory: { condition: service_healthy }
+      orders: { condition: service_healthy }
+      monitor: { condition: service_started }
+
+  backup:
+    image: tienda/servicio:1.0
+    profiles: [ops]
+    user: root
+    entrypoint: ["python3", "/app/backup.py"]
+    networks: [backend]
+    volumes:
+      - users-data:/data/users
+      - products-data:/data/products
+      - inventory-data:/data/inventory
+      - orders-data:/data/orders
+      - ./backups:/backups
+
+networks:
+  edge: {}
+  backend: { internal: true }        # red privada: sin acceso directo desde Internet
+
+volumes:
+  users-data: {}
+  products-data: {}
+  inventory-data: {}
+  orders-data: {}
+
+secrets:
+  jwt_secret:     { file: ./secrets/jwt_secret.txt }
+  service_key:    { file: ./secrets/service_key.txt }
+  admin_password: { file: ./secrets/admin_password.txt }

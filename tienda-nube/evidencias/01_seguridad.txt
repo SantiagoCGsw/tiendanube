@@ -1,0 +1,29 @@
+======================================================================================================
+PRUEBAS DE ACCESO, AUTENTICACIÓN Y PROTECCIÓN · https://localhost:8443
+======================================================================================================
+ 1  Consultar pedidos sin token                                    esperado=401  obtenido=401  OK
+ 2  Consultar pedidos con token falsificado                        esperado=401  obtenido=401  OK
+ 3  Login de Cliente A con contraseña incorrecta                   esperado=401  obtenido=401  OK
+ 4  Login de Cliente A con credenciales válidas (emite JWT)        esperado=200  obtenido=200  OK
+ 5  Cliente A crea un pedido (PED-F8314366)                        esperado=201  obtenido=201  OK
+ 6  Cliente A consulta su propio pedido                            esperado=200  obtenido=200  OK
+ 7  Cliente B intenta consultar el pedido de Cliente A             esperado=403  obtenido=403  OK
+ 8  Cliente A intenta modificar el inventario                      esperado=403  obtenido=403  OK
+ 9  Operador actualiza el inventario del producto 1                esperado=200  obtenido=200  OK
+10  Operador intenta crear un pedido (rol no permitido)            esperado=403  obtenido=403  OK
+11  Administrador lista todos los usuarios                         esperado=200  obtenido=200  OK
+12  Cliente A intenta listar todos los usuarios                    esperado=403  obtenido=403  OK
+13  Acceso externo a endpoint interno /internal/inventory/reserve  esperado=403  obtenido=403  OK
+14  Pedido que supera las existencias (no se descuenta stock)      esperado=409  obtenido=409  OK
+15  Solicitud por HTTP sin cifrar (redirección a HTTPS)            esperado=301  obtenido=301  OK
+------------------------------------------------------------------------------------------------------
+CIFRADO EN TRÁNSITO (TLS)
+    TLS 1.1: RECHAZADO (SSLError)
+    TLS 1.2: ACEPTADO  (ECDHE-RSA-AES256-GCM-SHA384)
+    TLS 1.3: ACEPTADO  (TLS_AES_256_GCM_SHA384)
+CABECERAS DE SEGURIDAD
+    Strict-Transport-Security: max-age=31536000
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: DENY
+======================================================================================================
+RESULTADO: 15/15 casos cumplen el resultado esperado

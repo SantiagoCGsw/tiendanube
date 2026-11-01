@@ -1,0 +1,12 @@
+$ docker compose logs users orders inventory | grep -E "login_failed|access_denied|order_created|stock_updated"
+{"ts": "13:49:27", "svc": "inventory", "ev": "access_denied", "path": "/api/inventory/1", "status": 403, "user": "3"ts": "13:49:27", "svc": "inventory", "ev": "stock_updated", "product_id": 1, "quantity": 48, "by": "2"}
+{"ts": "13:49:26", "svc": "orders", "ev": "access_denied", "path": "/api/orders", "status": 401, "user": nullts": "13:49:27", "svc": "orders", "ev": "order_created", "order_id": "PED-F8314366", "user_id": "3", "total_cop": 137700}
+{"ts": "13:49:27", "svc": "orders", "ev": "access_denied", "path": "/api/orders/PED-F8314366", "status": 403, "user": "4", "i…
+{"ts": "13:49:27", "svc": "users", "ev": "login_failed", "email": "cliente.a@correo.co"}
+{"ts": "13:49:27", "svc": "users", "ev": "access_denied", "path": "/api/users/login", "status": 401, "user": nullts": "13:49:27", "svc": "users", "ev": "access_denied", "path": "/api/users", "status": 403, "user": "3"ts": "13:50:33", "svc": "users", "ev": "login_failed", "email": "cliente.a@correo.co"}
+
+$ docker compose logs gateway   (registro de acceso en formato JSON)
+{"ts":"13:49:27","ip":"172.19.0.1","method":"POST","uri":"/api/orders","status":201,"upstream":"172.18.0.6:5000","rt":0.020}
+{"ts":"13:49:27","ip":"172.19.0.1","method":"GET","uri":"/api/orders/PED-F8314366","status":403,"upstream":"172.18.0.6:5000","rt":0.002}
+{"ts":"13:49:27","ip":"172.19.0.1","method":"PUT","uri":"/api/inventory/1","status":403,"upstream":"172.18.0.4:5000","rt":0.002}
+{"ts":"13:49:27","ip":"172.19.0.1","method":"POST","uri":"/api/orders","status":403,"upstream":"172.18.0.5:5000","rt":0.001}

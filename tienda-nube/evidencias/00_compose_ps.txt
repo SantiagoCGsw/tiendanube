@@ -1,0 +1,11 @@
+$ docker compose ps
+NAME                      IMAGE                 STATUS                    PORTS
+tienda-nube-gateway-1     tienda/gateway:1.0    Up 4 minutes              0.0.0.0:8080->80/tcp, 0.0.0.0:8443->443/tcp
+tienda-nube-inventory-1   tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp
+tienda-nube-monitor-1     tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp
+tienda-nube-orders-1      tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp
+tienda-nube-orders-2      tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp
+tienda-nube-products-1    tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp
+tienda-nube-products-2    tienda/servicio:1.0   Up 39 seconds (healthy)   5000/tcp
+tienda-nube-products-3    tienda/servicio:1.0   Up 58 seconds (healthy)   5000/tcp
+tienda-nube-users-1       tienda/servicio:1.0   Up 4 minutes (healthy)    5000/tcp

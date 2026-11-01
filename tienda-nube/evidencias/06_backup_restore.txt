@@ -1,0 +1,15 @@
+$ docker compose --profile ops run --rm backup backup
+[BACKUP] users      -> /backups/20261029-135244/users.sqlite3  registros={'users': 4}  sha256=f185dbd64b6f
+[BACKUP] products   -> /backups/20261029-135244/products.sqlite3  registros={'products': 6}  sha256=a8044cfac0da
+[BACKUP] inventory  -> /backups/20261029-135244/inventory.sqlite3  registros={'stock': 6}  sha256=981baf7d8d3e
+[BACKUP] orders     -> /backups/20261029-135244/orders.sqlite3  registros={'orders': 2}  sha256=7f1fd2dd94a8
+[BACKUP] Completado: /backups/20261029-135244
+
+# Simulación de pérdida de datos: se borran los pedidos
+   pedidos en la base de datos de orders: 2
+   DELETE FROM orders ejecutado
+   pedidos en la base de datos de orders: 0
+
+$ docker compose --profile ops run --rm backup restore orders
+[RESTORE] orders restaurado desde /backups/20261029-135244/  registros={'orders': 2}
+   pedidos en la base de datos de orders: 2

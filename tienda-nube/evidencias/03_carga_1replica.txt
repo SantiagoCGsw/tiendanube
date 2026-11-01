@@ -1,0 +1,18 @@
+$ docker compose up -d --scale products=1 && docker compose exec gateway nginx -s reload
+ Container tienda-nube-products-1 Running 
+ Container tienda-nube-products-2 Stopping 
+ Container tienda-nube-products-2 Stopped 
+ Container tienda-nube-products-2 Removing 
+ Container tienda-nube-products-2 Removed 
+ Container tienda-nube-products-1 Waiting 
+ Container tienda-nube-products-1 Healthy 
+2026/10/29 13:50:45 [notice] 10#10: signal process started
+
+PRUEBA DE CARGA (1 réplica): 400 solicitudes, 20 usuarios concurrentes
+  Duración total        : 8.58 s
+  Rendimiento           : 46.6 solicitudes/s
+  Latencia p50 / p95    : 428 ms / 434 ms
+  Códigos HTTP          : {200: 400}
+  Errores               : 0
+  Reparto entre réplicas:
+     df3ebac05deb: 400 solicitudes (100 %)

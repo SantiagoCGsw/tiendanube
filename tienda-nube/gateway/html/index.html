@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tienda Nube · Demo Computación en la Nube</title>
+<style>
+  :root { --ink:#1d2433; --muted:#667085; --line:#e4e7ec; --bg:#f6f7f9; --brand:#b0142c; --ok:#127a3f; --warn:#b54708; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: "Segoe UI", system-ui, sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:#fff; border-bottom:1px solid var(--line); padding:14px 28px; display:flex; align-items:center; gap:16px; }
+  header h1 { font-size:20px; margin:0; } header h1 span { color:var(--brand); }
+  header .who { margin-left:auto; font-size:14px; color:var(--muted); }
+  main { display:grid; grid-template-columns: 1fr 340px; gap:20px; padding:20px 28px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px; }
+  h2 { font-size:15px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; }
+  .prod { border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:6px; }
+  .tile { height:70px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:13px; }
+  .prod b { font-size:14px; } .price { font-weight:700; }
+  .muted { color:var(--muted); font-size:12px; }
+  button { background:var(--brand); color:#fff; border:0; border-radius:6px; padding:7px 10px; cursor:pointer; font-size:13px; }
+  button.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  input { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; margin-bottom:8px; font-size:13px; }
+  .row { display:flex; gap:6px; flex-wrap:wrap; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  td, th { padding:5px 4px; border-bottom:1px solid var(--line); text-align:left; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+  .up { background:#e7f6ec; color:var(--ok); } .down { background:#fdecea; color:var(--brand); }
+  #msg { font-size:13px; min-height:18px; margin-top:6px; }
+  aside { display:flex; flex-direction:column; gap:16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tienda <span>Nube</span></h1>
+  <span class="muted">Demo · plataforma de comercio electrónico en contenedores</span>
+  <div class="who" id="who">Sin sesión</div>
+</header>
+<main>
+  <section>
+    <div class="card"><h2>Catálogo de productos</h2><div class="grid" id="products"></div></div>
+    <div class="card" style="margin-top:16px"><h2>Mis pedidos</h2><div id="orders" class="muted">Inicie sesión para ver sus pedidos.</div></div>
+  </section>
+  <aside>
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+      <input id="email" placeholder="Correo" value="cliente.a@correo.co">
+      <input id="pass" type="password" placeholder="Contraseña" value="ClienteA#2026">
+      <div class="row"><button onclick="login()">Ingresar</button><button class="ghost" onclick="logout()">Salir</button></div>
+      <div id="msg"></div>
+    </div>
+    <div class="card"><h2>Carrito</h2><div id="cart" class="muted">Vacío</div>
+      <div class="row" style="margin-top:8px"><button onclick="checkout()">Confirmar pedido</button></div></div>
+    <div class="card"><h2>Estado de la plataforma</h2><div id="status" class="muted">Consultando…</div></div>
+  </aside>
+</main>
+<script>
+const COLORS = {"Tecnología":"#3d5a98","Accesorios":"#7a4b94","Mercado":"#8a5a2b","Hogar":"#2f7d6d"};
+let token = null, user = null, cart = {}, products = [];
+const cop = n => "$ " + n.toLocaleString("es-CO");
+const api = (path, opts={}) => fetch(path, {...opts, headers:{"Content-Type":"application/json",
+  ...(token ? {Authorization:"Bearer "+token} : {})}}).then(async r => ({status:r.status, body: await r.json().catch(()=>({})), inst:r.headers.get("X-Instance")}));
+function msg(t, ok=true){ const m=document.getElementById("msg"); m.textContent=t; m.style.color= ok? "var(--ok)":"var(--brand)"; }
+
+async function loadProducts(){
+  const r = await api("/api/products"); products = r.body;
+  document.getElementById("products").innerHTML = products.map(p => `
+    <div class="prod"><div class="tile" style="background:${COLORS[p.category]||'#555'}">${p.category}</div>
+    <b>${p.name}</b><span class="muted">${p.sku}</span><span class="price">${cop(p.price_cop)}</span>
+    <button onclick="add(${p.id})">Agregar</button></div>`).join("");
+}
+function add(id){ cart[id]=(cart[id]||0)+1; renderCart(); }
+function renderCart(){
+  const ids = Object.keys(cart); if(!ids.length){ document.getElementById("cart").textContent="Vacío"; return; }
+  let total=0; const rows = ids.map(id => { const p=products.find(x=>x.id==id); total+=p.price_cop*cart[id];
+    return `<tr><td>${p.name}</td><td>x${cart[id]}</td><td>${cop(p.price_cop*cart[id])}</td></tr>`; }).join("");
+  document.getElementById("cart").innerHTML = `<table>${rows}<tr><th colspan=2>Total</th><th>${cop(total)}</th></tr></table>`;
+}
+async function login(){
+  const r = await api("/api/users/login",{method:"POST",body:JSON.stringify({email:email.value,password:pass.value})});
+  if(r.status!==200){ msg(r.status===429?"Demasiados intentos. Espere un momento (429).":"Credenciales inválidas (401)", false); return; }
+  token=r.body.access_token; user=r.body.user;
+  document.getElementById("who").textContent = `${user.name} · rol: ${user.role}`; msg("Sesión iniciada con token JWT (30 min)"); loadOrders();
+}
+function logout(){ token=null; user=null; document.getElementById("who").textContent="Sin sesión"; document.getElementById("orders").textContent="Inicie sesión para ver sus pedidos."; msg(""); }
+async function checkout(){
+  if(!token){ msg("Debe iniciar sesión para comprar", false); return; }
+  const items = Object.entries(cart).map(([id,q])=>({product_id:+id, qty:q}));
+  const r = await api("/api/orders",{method:"POST",body:JSON.stringify({items})});
+  if(r.status===201){ msg(`Pedido ${r.body.id} confirmado · ${cop(r.body.total_cop)} · atendido por ${r.inst}`); cart={}; renderCart(); loadOrders(); }
+  else msg(`${r.body.error} (${r.status})`, false);
+}
+async function loadOrders(){
+  const r = await api("/api/orders"); if(r.status!==200) return;
+  document.getElementById("orders").innerHTML = r.body.length ? `<table><tr><th>Pedido</th><th>Productos</th><th>Total</th><th>Estado</th><th>Pago</th></tr>${
+    r.body.map(o=>`<tr><td>${o.id}</td><td>${o.items.map(i=>i.name+" x"+i.qty).join(", ")}</td><td>${cop(o.total_cop)}</td><td>${o.status}</td><td>${o.payment_status}</td></tr>`).join("")}</table>` : "Aún no tiene pedidos.";
+}
+async function loadStatus(){
+  const r = await api("/status");
+  document.getElementById("status").innerHTML = `<div style="margin-bottom:6px">Plataforma: <span class="pill ${r.body.platform==='UP'?'up':'down'}">${r.body.platform}</span></div><table>`+
+    Object.entries(r.body.services).map(([s,v])=>`<tr><td>${s}</td><td>${v.up}/${v.replicas} réplicas</td><td><span class="pill ${v.up===v.replicas?'up':'down'}">${v.up===v.replicas?'UP':'DEGRADED'}</span></td></tr>`).join("")+`</table><div class="muted" style="margin-top:6px">Revisado: ${r.body.checked_at}</div>`;
+}
+loadProducts(); loadStatus(); setInterval(loadStatus, 5000);
+</script>
+</body>
+</html>

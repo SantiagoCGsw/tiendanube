@@ -1,0 +1,14 @@
+$ docker compose exec users python3 -c "SELECT email, role, password_hash FROM users"
+   admin@tienda.co        admin     $2b$10$JX.QDjhqu31KWzt2t9B21OMSmVqHsJVj5...
+   operador@tienda.co     operador  $2b$10$LKwvdZzxH93xDC0dYZmahOTGaqTIfBpUA...
+   cliente.a@correo.co    cliente   $2b$10$X2zjjg0XxvLuy.LssSuLZuIQLPqJpG08X...
+   cliente.b@correo.co    cliente   $2b$10$t0YGSH3xYHa14citpgEwGO7TBsWKcOvZ....
+
+$ docker compose exec users sh -c "id; ls /run/secrets; touch /app/x"
+   uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
+   secretos montados: admin_password jwt_secret service_key 
+   touch: cannot touch '/app/x': Read-only file system
+
+$ docker run --network tienda-nube_edge ... curl http://users:5000/health   (cliente en la red pública)
+   Sin acceso: users:5000 no es alcanzable desde la red pública (curl código 6)
+   Por el API Gateway (https://gateway/api/products): HTTP 200
